@@ -163,7 +163,7 @@
   const scope = $('#scope'), ctx2d = scope.getContext('2d');
   const keybed = $('#keyboard');
   const state = { wave: 'sine', macro: .58, octave: -1, hold: false, playing: false, note: null, freq: 55, audioReady: false };
-  let audio, oscA, oscB, sub, gain, env, filter1, filter2, drive, analyser, lfo, lfoGain;
+  let audio, oscA, oscB, sub, oscAGain, oscBGain, subGain, gain, env, filter1, filter2, drive, analyser, lfo, lfoGain;
   const whiteNotes = [
     {name:'C', semi:0, left:0}, {name:'D', semi:2, left:1/7}, {name:'E', semi:4, left:2/7}, {name:'F', semi:5, left:3/7},
     {name:'G', semi:7, left:4/7}, {name:'A', semi:9, left:5/7}, {name:'B', semi:11, left:6/7}
@@ -189,6 +189,7 @@
     if (audio) return;
     audio = new (window.AudioContext || window.webkitAudioContext)();
     oscA = audio.createOscillator(); oscB = audio.createOscillator(); sub = audio.createOscillator();
+    oscAGain = audio.createGain(); oscBGain = audio.createGain(); subGain = audio.createGain();
     oscA.type = oscB.type = state.wave; sub.type = 'sine';
     filter1 = audio.createBiquadFilter(); filter1.type = 'lowpass';
     filter2 = audio.createBiquadFilter(); filter2.type = 'lowpass';
@@ -199,7 +200,8 @@
     lfo = audio.createOscillator(); lfo.type = 'sine'; lfo.frequency.value = 5.2;
     lfoGain = audio.createGain(); lfoGain.gain.value = 26;
     oscA.detune.value = -4; oscB.detune.value = 7; sub.detune.value = 0;
-    oscA.connect(filter1); oscB.connect(filter1); sub.connect(filter1);
+    oscA.connect(oscAGain); oscB.connect(oscBGain); sub.connect(subGain);
+    oscAGain.connect(filter1); oscBGain.connect(filter1); subGain.connect(filter1);
     filter1.connect(filter2); filter2.connect(drive); drive.connect(env); env.connect(gain); gain.connect(analyser); analyser.connect(audio.destination);
     lfo.connect(lfoGain); lfoGain.connect(filter1.frequency);
     oscA.start(); oscB.start(); sub.start(); lfo.start();
@@ -210,18 +212,24 @@
   function applyParams(now=false) {
     if (!audio) return;
     const t = audio.currentTime, m = state.macro;
-    const cutoff = 70 + Math.pow(m, 2.35) * 1450;
-    const q = 5 + m * 16;
-    const subMix = .35 + (1-m)*.10 + m*.42;
-    const mainMix = .38 + m*.20;
+    const waveTones = {
+      sine:     { a:'sine',     b:'sine',     cutoff:.58, q:.58, drive:.16, aGain:.34, bGain:.04, subGain:.72, detA:0,            detB:0,           lfo:.35 },
+      triangle: { a:'triangle', b:'triangle', cutoff:.82, q:.78, drive:.34, aGain:.42, bGain:.20, subGain:.45, detA:-3 - m*2,     detB:5 + m*3,     lfo:.70 },
+      square:   { a:'square',   b:'square',   cutoff:1.25, q:1.08, drive:.70, aGain:.48, bGain:.34, subGain:.30, detA:-7 - m*5,     detB:9 + m*8,     lfo:1.05 }
+    };
+    const waveTone = waveTones[state.wave] || waveTones.triangle;
+    const cutoff = (70 + Math.pow(m, 2.35) * 1450) * waveTone.cutoff;
+    const q = (4.5 + m * 15) * waveTone.q;
     filter1.frequency.setTargetAtTime(cutoff, t, now ? .001 : .018); filter2.frequency.setTargetAtTime(cutoff*.83, t, now ? .001 : .018);
     filter1.Q.setTargetAtTime(q, t, .02); filter2.Q.setTargetAtTime(q*.45, t, .02);
-    drive.curve = curve(.18 + m*.88);
-    oscA.type = oscB.type = state.wave;
-    oscA.detune.setTargetAtTime(-5 - m*4, t, .02); oscB.detune.setTargetAtTime(7 + m*7, t, .02);
+    drive.curve = curve(.08 + m * waveTone.drive);
+    oscA.type = waveTone.a; oscB.type = waveTone.b;
+    oscA.detune.setTargetAtTime(waveTone.detA, t, .02); oscB.detune.setTargetAtTime(waveTone.detB, t, .02);
+    oscAGain.gain.setTargetAtTime(waveTone.aGain, t, .018);
+    oscBGain.gain.setTargetAtTime(waveTone.bGain, t, .018);
+    subGain.gain.setTargetAtTime(waveTone.subGain, t, .018);
     gain.gain.setTargetAtTime((+$('#volume').value/100) * .52, t, .02);
-    // Balance by per-osc gain via changing oscillator output is not direct here, so use detune/drive/filter for macro tone.
-    lfoGain.gain.setTargetAtTime(8 + m*36, t, .05); lfo.frequency.setTargetAtTime(2.2 + m*5.8, t, .05);
+    lfoGain.gain.setTargetAtTime((8 + m*36) * waveTone.lfo, t, .05); lfo.frequency.setTargetAtTime(2.2 + m*5.8, t, .05);
     macroKnob.style.setProperty('--rot', (-125 + m * 250) + 'deg');
     macroKnob.style.setProperty('--buck-deg', Math.round(m * 260));
     const bucks = Math.round(m*100);
