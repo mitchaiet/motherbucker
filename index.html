@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#110806" />
+  <title>MotherBucker</title>
+  <style>
+    :root {
+      --bg: #100805;
+      --panel: rgba(38, 19, 10, .78);
+      --panel2: rgba(10, 7, 5, .72);
+      --amber: #ffb13d;
+      --orange: #f06423;
+      --cream: #ffe2a8;
+      --muted: #b98952;
+      --red: #ff4d2e;
+      --green: #91ff7b;
+      --shadow: rgba(0,0,0,.45);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
+    html, body { margin: 0; min-height: 100%; overflow: hidden; background: var(--bg); color: var(--cream); font-family: ui-rounded, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; touch-action: manipulation; }
+    body {
+      min-height: 100dvh;
+      background:
+        radial-gradient(circle at 18% 12%, rgba(255, 143, 33, .30), transparent 30%),
+        radial-gradient(circle at 80% 15%, rgba(139, 43, 18, .35), transparent 35%),
+        linear-gradient(160deg, #160804 0%, #2b1208 48%, #090605 100%);
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      padding: 0 max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
+    }
+    .grain { position: fixed; inset: 0; pointer-events: none; opacity: .15; mix-blend-mode: overlay; background-image: repeating-radial-gradient(circle at 17% 23%, rgba(255,255,255,.25) 0 1px, transparent 1px 3px); filter: contrast(140%); }
+    .app { width: 100%; max-width: 500px; min-width: 0; overflow: hidden; height: 100dvh; padding: max(12px, env(safe-area-inset-top)) 0 max(10px, env(safe-area-inset-bottom)); display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto auto minmax(165px, 1fr) auto; gap: 8px; }
+    header { display: block; padding: 4px 0 0; }
+    .brand { min-width: 0; width: 100%; }
+    .brand h1 { margin: 0 auto; display: block; width: 100%; padding: 7px 10px 8px; border: 3px solid rgba(255,255,255,.92); color: #fffaf0; background: rgba(6,4,3,.62); font-family: Impact, Haettenschweiler, "Arial Black", "Arial Narrow Bold", sans-serif; font-style: italic; font-weight: 1000; letter-spacing: -3.2px; font-size: clamp(36px, 10.4vw, 54px); line-height: .82; text-align: center; text-transform: uppercase; text-shadow: 3px 3px 0 rgba(0,0,0,.85), 0 0 12px rgba(255,255,255,.16); white-space: nowrap; transform: skewX(-8deg); transform-origin: center; box-shadow: inset 0 4px 0 rgba(255,255,255,.86), inset 0 -4px 0 rgba(255,255,255,.86), 0 5px 18px rgba(0,0,0,.34); }
+    .brand h1::before, .brand h1::after { content: ""; display: block; height: 4px; background: #fffaf0; margin: 0 2px 5px; box-shadow: 0 1px 0 rgba(0,0,0,.55); }
+    .brand h1::after { margin: 5px 2px 0; }
+    .logo-font, button, .section-label, .slider label, .macro-readout, footer { font-family: Impact, Haettenschweiler, "Arial Black", "Arial Narrow Bold", sans-serif; font-style: italic; font-weight: 1000; text-transform: uppercase; letter-spacing: .7px; }
+    button, .section-label, .slider label, .macro-readout { text-shadow: 1px 1px 0 rgba(0,0,0,.70), 0 0 9px rgba(255,177,61,.16); }
+    .brand p { margin: 6px 0 0 4px; color: var(--muted); font-family: Impact, Haettenschweiler, "Arial Black", "Arial Narrow Bold", sans-serif; font-style: italic; font-weight: 1000; font-size: clamp(11px, 3vw, 14px); letter-spacing: .9px; text-transform: uppercase; text-shadow: 1px 1px 0 rgba(0,0,0,.75); }
+    .power { justify-self: end; max-width: 72px; min-width: 62px; border: 1px solid rgba(255,177,61,.38); color: var(--cream); background: linear-gradient(180deg, #4b1f0d, #1c0d06); box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 8px 18px var(--shadow); border-radius: 999px; padding: 9px 8px; font-weight: 900; font-size: 11px; letter-spacing: .3px; }
+    .power.on { color: #160804; background: linear-gradient(180deg, #ffe49b, #ff8b20); border-color: rgba(255,255,255,.55); }
+    .panel { width: 100%; min-width: 0; background: linear-gradient(160deg, var(--panel), var(--panel2)); border: 1px solid rgba(255,177,61,.24); border-radius: 24px; box-shadow: 0 14px 36px var(--shadow), inset 0 1px 0 rgba(255,255,255,.09); backdrop-filter: blur(14px); }
+    .macro-panel { display: grid; grid-template-columns: .88fr 1.12fr; gap: 10px; align-items: center; padding: 10px; }
+    .knob-wrap { display: grid; place-items: center; }
+    .knob { width: min(38vw, 170px); aspect-ratio: 1; border-radius: 50%; border: 3px solid rgba(255,226,168,.28); background: radial-gradient(circle at 38% 30%, #8a421a 0 13%, #4b210d 42%, #160905 72%), conic-gradient(from -130deg, rgba(255,177,61,.95) 0 calc(var(--buck-deg, 58) * 1deg), rgba(255,226,168,.10) calc(var(--buck-deg, 58) * 1deg) 260deg, rgba(0,0,0,.20) 360deg); box-shadow: inset -16px -18px 30px rgba(0,0,0,.55), inset 10px 10px 30px rgba(255,177,61,.13), 0 16px 32px rgba(0,0,0,.48); position: relative; touch-action: none; }
+    .knob::before { content: ""; position: absolute; width: 8px; height: 40%; left: calc(50% - 4px); top: 9%; border-radius: 999px; background: linear-gradient(#ffe2a8, #ff7a22); box-shadow: 0 0 14px rgba(255,112,35,.65); transform-origin: 50% 100%; transform: rotate(var(--rot, -105deg)); z-index: 1; }
+    .knob::after { content: attr(data-bucks); position: absolute; left: 50%; top: 50%; width: 58%; height: 58%; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(180deg, #2b1208, #0c0504); border: 1px solid rgba(255,177,61,.34); color: var(--cream); font-family: Impact, Haettenschweiler, "Arial Black", "Arial Narrow Bold", sans-serif; font-style: italic; font-weight: 1000; letter-spacing: -.5px; line-height: 1; text-align: center; font-variant-numeric: tabular-nums; font-size: clamp(36px, 9.4vw, 58px); transform: translate(-50%, -50%); text-shadow: 0 2px 12px rgba(255,112,35,.42); box-shadow: inset 0 1px 0 rgba(255,255,255,.08), inset 0 -12px 22px rgba(0,0,0,.35); z-index: 2; padding-right: .04em; }
+    .macro-readout { text-align: center; margin-top: 10px; color: var(--cream); font-size: 16px; letter-spacing: 1px; line-height: 1.0; transform: skewX(-7deg); }
+    .scope { min-height: 96px; border-radius: 20px; background: linear-gradient(180deg, rgba(7,12,9,.8), rgba(3,5,4,.85)); border: 1px solid rgba(145,255,123,.18); padding: 8px; position: relative; overflow: hidden; }
+    canvas { width: 100%; height: 70px; display: block; }
+    .hint { position: absolute; left: 12px; right: 12px; bottom: 8px; color: rgba(255,226,168,.62); font-family: Impact, Haettenschweiler, "Arial Black", "Arial Narrow Bold", sans-serif; font-style: italic; text-transform: uppercase; font-size: 12px; font-weight: 1000; letter-spacing: .6px; line-height: 1.05; text-shadow: 1px 1px 0 rgba(0,0,0,.7); }
+    .controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; padding: 8px; }
+    .section-label { grid-column: 1/-1; color: var(--muted); letter-spacing: 1.9px; font-size: 14px; transform: skewX(-7deg); }
+    .wave, .mini { border: 1px solid rgba(255,177,61,.28); border-radius: 16px; min-height: 44px; color: var(--cream); background: rgba(15,8,5,.72); font-size: 15px; letter-spacing: .9px; transform: skewX(-5deg); box-shadow: inset 0 1px 0 rgba(255,255,255,.08); }
+    .wave.active, .mini.active { background: linear-gradient(180deg, #ffb13d, #e75d20); color: #170804; border-color: #ffe2a8; text-shadow: 1px 1px 0 rgba(255,255,255,.25); box-shadow: 0 10px 28px rgba(240,100,35,.30); }
+    .mini:disabled { opacity: .42; color: rgba(255,226,168,.55); filter: saturate(.65); }
+    .sliders { display: grid; grid-template-columns: repeat(2, 1fr); gap: 7px; padding: 8px; }
+    .slider { background: rgba(10,7,5,.65); border: 1px solid rgba(255,177,61,.18); border-radius: 16px; padding: 8px 8px; }
+    .slider label { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--muted); letter-spacing: 1px; transform: skewX(-6deg); }
+    input[type="range"] { width: 100%; accent-color: var(--amber); margin-top: 6px; }
+    .keyboard { position: relative; display: block; height: 100%; min-height: 165px; padding: 10px; overflow: hidden; }
+    .key { position: absolute; border: 1px solid rgba(255,226,168,.26); font-family: Impact, Haettenschweiler, "Arial Black", "Arial Narrow Bold", sans-serif; font-style: italic; font-weight: 1000; letter-spacing: .8px; padding: 0; font-size: clamp(14px, 3.4vw, 18px); display: flex; align-items: flex-end; justify-content: center; touch-action: none; user-select: none; text-shadow: 1px 1px 0 rgba(255,255,255,.35); }
+    .key.white { left: calc(10px + var(--left) * (100% - 20px)); top: 10px; width: calc(14.2857% - 2.5px); height: calc(100% - 20px); border-radius: 0 0 18px 18px; background: linear-gradient(180deg, #fff1c8 0%, #ffd98b 60%, #ad652e 100%); color: #1a0904; box-shadow: inset 0 -15px 25px rgba(68,25,8,.22), inset 0 1px 0 rgba(255,255,255,.85), 0 12px 25px rgba(0,0,0,.25); padding-bottom: 17px; z-index: 1; }
+    .key.white:first-child { border-top-left-radius: 18px; }
+    .key.white[data-semi="11"] { border-top-right-radius: 18px; }
+    .key.black { left: calc(10px + var(--left) * (100% - 20px) - 4.4%); top: 10px; width: 8.8%; height: 61%; border-radius: 0 0 14px 14px; background: linear-gradient(180deg, #3a190d 0%, #110705 70%, #030202 100%); color: var(--amber); border-color: rgba(255,177,61,.35); box-shadow: inset 0 -10px 18px rgba(0,0,0,.55), 0 12px 22px rgba(0,0,0,.42); padding-bottom: 11px; z-index: 3; }
+    .key.down { filter: brightness(1.22) saturate(1.25); box-shadow: 0 0 0 2px rgba(255,226,168,.50), 0 0 34px rgba(255,106,32,.55); }
+    footer { color: rgba(255,226,168,.55); text-align: center; font-size: 12px; letter-spacing: .7px; padding: 0 10px; text-shadow: 1px 1px 0 rgba(0,0,0,.75); }
+    @media (max-width: 430px) {
+      body { padding-left: max(14px, env(safe-area-inset-left)); padding-right: max(14px, env(safe-area-inset-right)); }
+      .app { gap: 7px; padding-top: max(6px, env(safe-area-inset-top)); grid-template-rows: auto auto auto auto minmax(155px, 1fr) auto; }
+      .brand h1 { font-size: clamp(31px, 9.2vw, 42px); letter-spacing: -2.2px; padding: 6px 8px 7px; border-width: 2px; }
+      .brand h1::before, .brand h1::after { height: 3px; }
+      .brand p { font-size: 10px; margin-top: 5px; }
+      .macro-panel { grid-template-columns: 1fr; }
+      .knob { width: min(40vw, 140px); }
+      .knob::after { font-size: clamp(32px, 9vw, 48px); letter-spacing: -2px; }
+      .macro-readout { margin-top: 6px; font-size: 12px; }
+      .scope { min-height: 80px; }
+      canvas { height: 56px; }
+      .hint { display: none; }
+      .wave, .mini { min-height: 40px; font-size: 13px; letter-spacing: .6px; }
+      .section-label { font-size: 12px; }
+      .slider { padding: 6px 7px; }
+      .slider label { font-size: 10px; letter-spacing: .6px; }
+      footer { font-size: 10px; line-height: 1.15; }
+      .key.black { width: 9.8%; left: calc(10px + var(--left) * (100% - 20px) - 4.9%); }
+    }
+    @media (max-height: 740px) and (orientation: portrait) {
+      .app { gap: 6px; grid-template-rows: auto auto auto auto minmax(140px, 1fr) auto; }
+      .brand p, footer { display: none; }
+      .macro-panel { grid-template-columns: .78fr 1.22fr; padding: 8px; }
+      .knob { width: min(34vw, 118px); }
+      .knob::after { font-size: clamp(28px, 8vw, 40px); letter-spacing: -1.5px; }
+      .macro-readout { font-size: 11px; margin-top: 4px; }
+      .scope { min-height: 76px; }
+      canvas { height: 54px; }
+      .controls, .sliders { padding: 7px; gap: 6px; }
+      .wave, .mini { min-height: 38px; }
+      .keyboard { min-height: 140px; }
+    }
+    @media (orientation: landscape) and (max-height: 660px) {
+      .app { width: min(760px, 100%); grid-template-columns: .92fr 1.08fr; grid-template-rows: auto auto 1fr auto; }
+      header { grid-column: 1 / -1; }
+      .macro-panel, .controls, .sliders, footer { grid-column: 1; }
+      .macro-panel { grid-template-columns: 1fr; }
+      .keyboard { grid-column: 2; grid-row: 2 / span 4; height: calc(100dvh - 96px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="grain"></div>
+  <main class="app">
+    <header>
+      <div class="brand">
+        <h1>MotherBucker</h1>
+        <p>Moog-ish bass machine · one big rude macro</p>
+      </div>
+    </header>
+
+    <section class="panel macro-panel">
+      <div class="knob-wrap">
+        <div id="macroKnob" class="knob" data-bucks="58" role="slider" aria-label="Buck macro" aria-valuemin="0" aria-valuemax="100" aria-valuenow="58"></div>
+        <div id="macroText" class="macro-readout">Bucks Given</div>
+      </div>
+      <div class="scope">
+        <canvas id="scope"></canvas>
+        <div class="hint">Touch keys. Drag BUCK for filter, drive, sub weight, resonance.</div>
+      </div>
+    </section>
+
+    <section class="panel controls">
+      <div class="section-label">Wave</div>
+      <button class="wave active" data-wave="sine">Sine</button>
+      <button class="wave" data-wave="square">Square</button>
+      <button class="wave" data-wave="triangle">Triangle</button>
+      <div class="section-label">Performance</div>
+      <button id="octDown" class="mini">OCT -2</button>
+      <button id="hold" class="mini">HOLD</button>
+      <button id="octUp" class="mini">OCT 0</button>
+    </section>
+
+    <section class="panel sliders">
+      <div class="slider"><label>Glide <span id="glideVal">70ms</span></label><input id="glide" type="range" min="0" max="280" value="70"></div>
+      <div class="slider"><label>Attack <span id="attackVal">8ms</span></label><input id="attack" type="range" min="0" max="180" value="8"></div>
+      <div class="slider"><label>Decay <span id="decayVal">430ms</span></label><input id="decay" type="range" min="80" max="1400" value="430"></div>
+      <div class="slider"><label>Volume <span id="volVal">75%</span></label><input id="volume" type="range" min="0" max="100" value="75"></div>
+    </section>
+
+    <section id="keyboard" class="panel keyboard" aria-label="touch keyboard"></section>
+    <footer>Tip: try Square + BUCK 70–85% for thick Mother-32-ish bass. Sine is sub, Triangle is round, Square bites.</footer>
+  </main>
+
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const $$ = s => [...document.querySelectorAll(s)];
+  const powerBtn = $('#power'), macroKnob = $('#macroKnob'), macroText = $('#macroText');
+  const scope = $('#scope'), ctx2d = scope.getContext('2d');
+  const keybed = $('#keyboard');
+  const state = { wave: 'sine', macro: .58, octave: -1, hold: false, playing: false, note: null, freq: 55, audioReady: false };
+  let audio, oscA, oscB, sub, gain, env, filter1, filter2, drive, analyser, lfo, lfoGain;
+  const whiteNotes = [
+    {name:'C', semi:0, left:0}, {name:'D', semi:2, left:1/7}, {name:'E', semi:4, left:2/7}, {name:'F', semi:5, left:3/7},
+    {name:'G', semi:7, left:4/7}, {name:'A', semi:9, left:5/7}, {name:'B', semi:11, left:6/7}
+  ];
+  const blackNotes = [
+    {name:'C#', semi:1, left:1/7}, {name:'D#', semi:3, left:2/7}, {name:'F#', semi:6, left:4/7}, {name:'G#', semi:8, left:5/7}, {name:'A#', semi:10, left:6/7}
+  ];
+  function freqFor(semi) { return 32.7032 * Math.pow(2, (semi + (state.octave + 1) * 12) / 12); }
+  function makeKey(note, black=false) {
+    const b = document.createElement('button');
+    b.className = 'key ' + (black ? 'black' : 'white');
+    b.textContent = note.name; b.dataset.semi = note.semi; b.style.setProperty('--left', note.left);
+    b.addEventListener('pointerdown', e => { e.preventDefault(); b.setPointerCapture(e.pointerId); playNote(+b.dataset.semi); b.classList.add('down'); });
+    b.addEventListener('pointerup', e => { e.preventDefault(); b.classList.remove('down'); if (!state.hold) stopNote(); });
+    b.addEventListener('pointercancel', () => { b.classList.remove('down'); if (!state.hold) stopNote(); });
+    b.addEventListener('pointerenter', e => { if (e.buttons) { $$('.key').forEach(k=>k.classList.remove('down')); b.classList.add('down'); playNote(+b.dataset.semi); }});
+    return b;
+  }
+  whiteNotes.forEach(n => keybed.appendChild(makeKey(n, false)));
+  blackNotes.forEach(n => keybed.appendChild(makeKey(n, true)));
+
+  async function initAudio() {
+    if (audio) return;
+    audio = new (window.AudioContext || window.webkitAudioContext)();
+    oscA = audio.createOscillator(); oscB = audio.createOscillator(); sub = audio.createOscillator();
+    oscA.type = oscB.type = state.wave; sub.type = 'sine';
+    filter1 = audio.createBiquadFilter(); filter1.type = 'lowpass';
+    filter2 = audio.createBiquadFilter(); filter2.type = 'lowpass';
+    drive = audio.createWaveShaper(); drive.oversample = '4x';
+    env = audio.createGain(); env.gain.value = 0;
+    gain = audio.createGain(); gain.gain.value = .35;
+    analyser = audio.createAnalyser(); analyser.fftSize = 2048; analyser.smoothingTimeConstant = .62;
+    lfo = audio.createOscillator(); lfo.type = 'sine'; lfo.frequency.value = 5.2;
+    lfoGain = audio.createGain(); lfoGain.gain.value = 26;
+    oscA.detune.value = -4; oscB.detune.value = 7; sub.detune.value = 0;
+    oscA.connect(filter1); oscB.connect(filter1); sub.connect(filter1);
+    filter1.connect(filter2); filter2.connect(drive); drive.connect(env); env.connect(gain); gain.connect(analyser); analyser.connect(audio.destination);
+    lfo.connect(lfoGain); lfoGain.connect(filter1.frequency);
+    oscA.start(); oscB.start(); sub.start(); lfo.start();
+    state.audioReady = true; if (powerBtn) { powerBtn.textContent = 'ON'; powerBtn.classList.add('on'); }
+    applyParams(true);
+  }
+  function curve(amount) { const n = 2048, c = new Float32Array(n), k = amount * 80; for (let i=0;i<n;i++){ const x = i*2/n-1; c[i] = ((1+k)*x)/(1+k*Math.abs(x)); } return c; }
+  function applyParams(now=false) {
+    if (!audio) return;
+    const t = audio.currentTime, m = state.macro;
+    const cutoff = 70 + Math.pow(m, 2.35) * 1450;
+    const q = 5 + m * 16;
+    const subMix = .35 + (1-m)*.10 + m*.42;
+    const mainMix = .38 + m*.20;
+    filter1.frequency.setTargetAtTime(cutoff, t, now ? .001 : .018); filter2.frequency.setTargetAtTime(cutoff*.83, t, now ? .001 : .018);
+    filter1.Q.setTargetAtTime(q, t, .02); filter2.Q.setTargetAtTime(q*.45, t, .02);
+    drive.curve = curve(.18 + m*.88);
+    oscA.type = oscB.type = state.wave;
+    oscA.detune.setTargetAtTime(-5 - m*4, t, .02); oscB.detune.setTargetAtTime(7 + m*7, t, .02);
+    gain.gain.setTargetAtTime((+$('#volume').value/100) * .52, t, .02);
+    // Balance by per-osc gain via changing oscillator output is not direct here, so use detune/drive/filter for macro tone.
+    lfoGain.gain.setTargetAtTime(8 + m*36, t, .05); lfo.frequency.setTargetAtTime(2.2 + m*5.8, t, .05);
+    macroKnob.style.setProperty('--rot', (-125 + m * 250) + 'deg');
+    macroKnob.style.setProperty('--buck-deg', Math.round(m * 260));
+    const bucks = Math.round(m*100);
+    macroText.textContent = `${bucks === 1 ? 'Buck' : 'Bucks'} Given`;
+    macroKnob.dataset.bucks = bucks;
+    macroKnob.setAttribute('aria-valuenow', bucks);
+  }
+  function setFreq(f) {
+    if (!audio) return; const t=audio.currentTime, glide=+$('#glide').value/1000; state.freq=f;
+    oscA.frequency.setTargetAtTime(f, t, Math.max(.001, glide)); oscB.frequency.setTargetAtTime(f, t, Math.max(.001, glide)); sub.frequency.setTargetAtTime(f/2, t, Math.max(.001, glide));
+  }
+  async function playNote(semi) {
+    await initAudio(); if (audio.state !== 'running') await audio.resume();
+    state.note = semi; setFreq(freqFor(semi));
+    const t=audio.currentTime, a=+$('#attack').value/1000, d=+$('#decay').value/1000, sustain=.64;
+    env.gain.cancelScheduledValues(t); env.gain.setValueAtTime(Math.max(env.gain.value, .0001), t); env.gain.linearRampToValueAtTime(1.0, t+a+.004); env.gain.exponentialRampToValueAtTime(sustain, t+a+d);
+    state.playing = true;
+  }
+  function stopNote() { if (!audio) return; const t=audio.currentTime; env.gain.cancelScheduledValues(t); env.gain.setValueAtTime(Math.max(env.gain.value, .0001), t); env.gain.exponentialRampToValueAtTime(.0001, t+.18); state.playing = false; }
+  if (powerBtn) powerBtn.addEventListener('click', initAudio);
+  $$('.wave').forEach(b => b.addEventListener('click', async () => { state.wave=b.dataset.wave; $$('.wave').forEach(x=>x.classList.toggle('active', x===b)); await initAudio(); applyParams(); }));
+  $('#hold').addEventListener('click', e => { state.hold=!state.hold; e.currentTarget.classList.toggle('active', state.hold); if (!state.hold) stopNote(); });
+  $('#octDown').addEventListener('click', () => { state.octave=Math.max(-2,state.octave-1); if(state.note!==null) setFreq(freqFor(state.note)); updateOctButtons(); });
+  $('#octUp').addEventListener('click', () => { state.octave=Math.min(1,state.octave+1); if(state.note!==null) setFreq(freqFor(state.note)); updateOctButtons(); });
+  function fmtOct(n){ return n > 0 ? '+' + n : String(n); }
+  function updateOctButtons(){
+    const down = Math.max(-2, state.octave - 1);
+    const up = Math.min(1, state.octave + 1);
+    $('#octDown').textContent = 'OCT ' + fmtOct(down);
+    $('#octUp').textContent = 'OCT ' + fmtOct(up);
+    $('#octDown').disabled = state.octave <= -2;
+    $('#octUp').disabled = state.octave >= 1;
+  }
+  updateOctButtons();
+  ['glide','attack','decay','volume'].forEach(id => $('#'+id).addEventListener('input', () => { $('#'+id+'Val').textContent = id==='volume' ? $('#'+id).value+'%' : $('#'+id).value+'ms'; applyParams(); }));
+  function knobFromPointer(e) { const r = macroKnob.getBoundingClientRect(); const x=e.clientX-r.left-r.width/2, y=e.clientY-r.top-r.height/2; let deg=Math.atan2(y,x)*180/Math.PI + 90; if(deg < -180) deg += 360; let v=(deg+125)/250; state.macro=Math.max(0,Math.min(1,v)); applyParams(); }
+  macroKnob.addEventListener('pointerdown', async e => { e.preventDefault(); macroKnob.setPointerCapture(e.pointerId); await initAudio(); knobFromPointer(e); });
+  macroKnob.addEventListener('pointermove', e => { if(e.buttons) knobFromPointer(e); });
+  macroKnob.addEventListener('wheel', e => { e.preventDefault(); state.macro=Math.max(0,Math.min(1,state.macro - e.deltaY*.001)); applyParams(); }, {passive:false});
+  function resizeScope(){ const dpr=Math.min(2, window.devicePixelRatio||1); const r=scope.getBoundingClientRect(); scope.width=Math.max(320, Math.floor(r.width*dpr)); scope.height=Math.floor(126*dpr); }
+  window.addEventListener('resize', resizeScope); resizeScope(); applyParams();
+  const data = new Uint8Array(1024);
+  function drawScope(){ requestAnimationFrame(drawScope); const w=scope.width,h=scope.height; ctx2d.clearRect(0,0,w,h); ctx2d.fillStyle='#030604'; ctx2d.fillRect(0,0,w,h); ctx2d.globalAlpha=.18; ctx2d.strokeStyle='#91ff7b'; ctx2d.lineWidth=1; for(let y=0;y<h;y+=h/4){ctx2d.beginPath();ctx2d.moveTo(0,y);ctx2d.lineTo(w,y);ctx2d.stroke();} ctx2d.globalAlpha=1;
+    if(analyser){ analyser.getByteTimeDomainData(data); } else { for(let i=0;i<data.length;i++) data[i]=128+Math.sin((i/22)+performance.now()/260)*30; }
+    const grad=ctx2d.createLinearGradient(0,0,w,0); grad.addColorStop(0,'#91ff7b'); grad.addColorStop(.55,'#ffb13d'); grad.addColorStop(1,'#ff4d2e'); ctx2d.strokeStyle=grad; ctx2d.lineWidth=Math.max(2,w/420); ctx2d.beginPath();
+    for(let i=0;i<data.length;i++){ const x=i/(data.length-1)*w; const y=(data[i]/255)*h; if(i===0) ctx2d.moveTo(x,y); else ctx2d.lineTo(x,y); } ctx2d.stroke();
+    ctx2d.fillStyle='rgba(255,177,61,.75)'; ctx2d.font=`${Math.max(18,w/38)}px ui-rounded, system-ui`; ctx2d.fillText(state.wave.toUpperCase()+'  '+Math.round(state.freq)+'Hz', 18, 32);
+  }
+  drawScope();
+})();
+</script>
+</body>
+</html>
